@@ -1,0 +1,33 @@
+rules:
+  R1:
+    name: "速度欺诈"
+    type: "velocity"
+    enabled: true
+    window_minutes: 5
+    threshold: 5
+    description: "同一用户5分钟内交易 >= 5笔"
+
+  R2:
+    name: "地理跳跃"
+    type: "geo_jump"
+    enabled: true
+    max_distance_km: 1000
+    max_interval_minutes: 10
+    description: "同一用户前后两笔交易地理位置距离 > 1000km 且间隔 < 10分钟"
+
+  R3:
+    name: "深夜大额"
+    type: "night_large"
+    enabled: true
+    min_amount: 5000
+    start_hour: 0
+    end_hour: 5
+    description: "交易金额 > $5000 且时间在 00:00-05:00"
+
+  R4:
+    name: "商户高频"
+    type: "merchant_velocity"
+    enabled: true
+    window_minutes: 1
+    threshold: 3
+    description: "同一商户1分钟内交易 > 3笔"

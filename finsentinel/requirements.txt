@@ -1,0 +1,7 @@
+pyspark==3.5.0
+delta-spark==3.0.0
+kafka-python==2.0.2
+pymongo==4.6.0
+pyyaml==6.0.1
+python-dotenv==1.0.0
+faker==20.1.0
