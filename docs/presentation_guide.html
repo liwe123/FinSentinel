@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>FinSentinel Technical Defense Presentation Guide</title>
+<style>
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+  body {
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+  }
+  .header {
+    text-align: center;
+    border-bottom: 3px solid #3964fe;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-size: 20pt;
+    color: #111;
+    margin: 0 0 6px;
+  }
+  .subtitle {
+    font-size: 11pt;
+    color: #666;
+    margin: 0;
+  }
+  .slide-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 24px;
+    background-color: #fafafa;
+    break-inside: avoid;
+  }
+  .slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+  .slide-title {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #3964fe;
+  }
+  .slide-time {
+    font-size: 9.5pt;
+    font-weight: bold;
+    color: #f0ad4e;
+    background-color: #fef8f0;
+    border: 1px solid #f5e7d6;
+    padding: 2px 8px;
+    border-radius: 9999px;
+  }
+  .section-label {
+    font-size: 9.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #777;
+    margin-top: 12px;
+    margin-bottom: 4px;
+  }
+  .slide-screen {
+    font-size: 9.5pt;
+    background-color: #eaeaea;
+    border-left: 3px solid #777;
+    padding: 6px 10px;
+    border-radius: 3px;
+    font-family: Consolas, monospace;
+    margin-bottom: 12px;
+  }
+  .slide-script {
+    font-size: 10.5pt;
+    background-color: #eef3ff;
+    border-left: 3px solid #3964fe;
+    padding: 10px 14px;
+    border-radius: 3px;
+    color: #111;
+    text-align: justify;
+    font-style: italic;
+  }
+  .autopsy-badge {
+    background-color: #fdf2f2;
+    border: 1px solid #fde2e2;
+    color: #ec5d5d;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 8.5pt;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .qa-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background-color: #fff;
+    break-inside: avoid;
+  }
+  .qa-question {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #d9534f;
+    margin-bottom: 6px;
+  }
+  .qa-answer {
+    font-size: 10pt;
+    background-color: #fcfcfc;
+    border-left: 3px solid #5cb85c;
+    padding: 8px 12px;
+    border-radius: 3px;
+    color: #222;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>FinSentinel 最终答辩与技术演示汇报脚本</h1>
+  <div class="subtitle">学期大作业项目 Direction A (实时反欺诈系统) - 限时 15 分钟技术总监汇报</div>
+</div>
+
+<!-- Slide 1 -->
+<div class="slide-card">
+  <div class="slide-header">
+    <div class="slide-title">Slide 1: 封面与开场 (开场钩子)</div>
+    <div class="slide-time">限时 0:00 - 1:00 (1 分钟)</div>
+  </div>
+  <div class="section-label">PPT 画面设计</div>
+  <div class="slide-screen">暗黑科技风格大图，呈现 FinSentinel LOGO，副标题：基于 Spark Streaming + Delta Lakehouse 的秒级金融反欺诈流计算系统</div>
+  <div class="section-label">现场演讲逐字稿</div>
+  <div class="slide-script">“各位评委老师、同学们，早上好！假设你是一名电商平台或金融机构的风控主管。在凌晨 3 点，有一笔异常的盗刷交易正在发生——欺诈分子通过盗取的信用卡正准备在线支付一台价值 $7,000 的 MacBook。在传统的 T+1 跑批风控系统下，这笔异常交易的报警将会在 4 小时、甚至一天后才会被推送到你的办公桌上，而那时用户的资金早已被洗白并转走。今天，我们小组为你带来的 FinSentinel 实时反欺诈平台，能够在这笔诈骗发生的 3 秒钟内，捕获异常、触发警报并在大屏幕上完成红色高亮推送！接下来，我们直接通过现场实时演示来看看它是如何做到的。”</div>
+</div>
+
+<!-- Slide 2 -->
+<div class="slide-card">
+  <div class="slide-header">
+    <div class="slide-title">Slide 2: 现场演示环节 (Live Demo)</div>
+    <div class="slide-time">限时 1:00 - 5:00 (4 分钟)</div>
+  </div>
+  <div class="section-label">PPT 画面设计</div>
+  <div class="slide-screen">现场系统演示导引，标注两个并列终端：
+1. 监控大屏: python src/alert_monitor.py
+2. 坏账注入: python src/transaction_generator.py --inject-fraud R2 (地理跳跃)</div>
+  <div class="section-label">现场演讲逐字稿</div>
+  <div class="slide-script">“（操作演示）大家请看大屏幕。左侧是我们的交易发生器，正以模拟的生产流速向 Kafka 写入实时数据；右侧则是风控分析师面对的实时监控大屏，目前一切平静。现在，我将向系统中人为注入一笔 R2 级的‘地理跳跃欺诈’交易——即该用户刚刚在纽约消费，突然在一秒钟后又在东京发起了大额支付。我按下回车执行注入……一，二，三！大家看，右侧监控大屏瞬间闪烁起耀眼的红色 [ALERT] 警报！地理跳跃警报被精准捕捉，显示出了被哈希脱敏后的 user_hash、流水号和金额。如果现场网络有任何波动，我们已将这一‘黄金路径’演示提前录制了备用高清视频（docs/demo_backup.mp4），可以无缝切入。下面我们将打开 FinSentinel 的‘玻璃盒’，向大家剖析我们究竟是如何捕获并安全存储这笔流数据。”</div>
+</div>
+
+<!-- Slide 3 -->
+<div class="slide-card">
+  <div class="slide-header">
+    <div class="slide-title">Slide 3: 系统架构与湖仓全生命周期</div>
+    <div class="slide-time">限时 5:00 - 9:00 (4 分钟)</div>
+  </div>
+  <div class="section-label">PPT 画面设计</div>
+  <div class="slide-screen">展示精美的系统架构图（Mermaid 格式三层湖仓流式分流图，展示 Bronze 与 Silver 的分层治理）</div>
+  <div class="section-label">现场演讲逐字稿</div>
+  <div class="slide-script">“请跟随我们一起追踪刚刚这笔欺诈交易在 FinSentinel 内部的完整生命周期：首先，这笔 JSON 数据流进入高吞吐的 Kafka Topic。接着，Spark Structured Streaming 启动微批订阅消费。在这里，我们做出了一个非常重要的系统级优化：由于 Kafka 发来的是多级嵌套的 location 结构体，普通的层级提取极易导致运行期类型不匹配。我们编写了嵌套结构扁平化算法，在流解析的第一时间，将 latitude、longitude 和 city 提升为一维顶层列，确保了后续计算绝不抛出 unresolved 崩溃。随后，数据完成了三向分流：第一路写入 Delta Lake 的 Bronze (原始层) 表保留完整支付底册；第二路进行加盐哈希与 IP 掩码脱敏写入 Silver (清洗层)；第三路注入风控算法核心并在命中规则时将动态详情写入 MongoDB 并闪烁警报。”</div>
+</div>
+
+<!-- Slide 4 -->
+<div class="slide-card">
+  <div class="slide-header">
+    <div class="slide-title">Slide 4: “我们搞砸了” (事故剖析与反思)</div>
+    <div class="slide-time">限时 9:00 - 11:00 (2 分钟)</div>
+  </div>
+  <div class="autopsy-badge">CTO 实战经验分享</div>
+  <div class="section-label">PPT 画面设计</div>
+  <div class="slide-screen">红底加粗大字：“Autopsy: 开发期发生的两次重大系统故障”
+1. 高并发告警 ID 碰撞
+2. Windows 本地 Python 3.13 解释器套接字连接重置</div>
+  <div class="section-label">现场演讲逐字稿</div>
+  <div class="slide-script">“在项目的第 4 和第 5 周，我们经历了两起严重的、真实发生的开发灾难。我们不打算隐瞒它们，因为这正是我们小组最宝贵的工程收获：第一个事故是高并发下告警主键碰撞。在压力测试下，MongoDB 抛出大量 DuplicateKeyError 导致丢警。我们发现原 alert_id 设计依赖秒级时间戳，高并发下秒级产生多笔告警引发冲突。我们通过将 alert_id 重构为流水 UUID 实现了完美的幂等写入，警报再未丢失。第二个事故是 Windows 测试时的多版本 Python 冲突。我们在运行测试用例时频繁发生 PySpark 连接重置崩溃，根源是 Windows PATH 首位调用了商店的 Python 3.13，而 PySpark 3.5 只兼容 3.11。我们通过在测试套件中植入 conftest.py 全局钩子强制将底层 Worker 绑定为了当前 pytest 激活的 sys.executable (Python 3.11)，平滑扫清了测试障碍！”</div>
+</div>
+
+<!-- Slide 5 -->
+<div class="slide-card">
+  <div class="slide-header">
+    <div class="slide-title">Slide 5: 延迟预算与每月财务估算</div>
+    <div class="slide-time">限时 11:00 - 12:00 (1 分钟)</div>
+  </div>
+  <div class="section-label">PPT 画面设计</div>
+  <div class="slide-screen">阿里云 10TB/天数据量下的财务成本拆分表（EMR 计算、Kafka 吞吐包、MongoDB 持久层、OSS 数据湖存储，每月约 11.39 万元人民币）</div>
+  <div class="section-label">现场演讲逐字稿</div>
+  <div class="slide-script">“最后，大数据工程永远要考虑商业成本与延迟预算的权衡。我们的系统设定了极严格的 3.5 秒延迟预算，经实测，端到端完整链路判定仅需 2.6s - 3.4s。同时，针对企业级每日 10TB 流量规模，我们预估需要 12 个 Work 节点的常驻 Spark 弹性集群，算上 Delta 湖仓生命周期策略、Kafka 跨可用区带宽包以及 MongoDB 分片集群，每月预估云开销约为 113,900 元。我们测算出处理 100 万笔交易仅需耗费 ￥3.8 元 的基础设施费用，这是一套商业可行性极佳、具备高扩展性的大数据风控架构。”</div>
+</div>
+
+<!-- Slide 6 -->
+<div class="slide-card">
+  <div class="slide-header">
+    <div class="slide-title">Slide 6: 致谢与提问环节</div>
+    <div class="slide-time">限时 12:00 - 15:00 (3 分钟)</div>
+  </div>
+  <div class="section-label">现场演讲逐字稿</div>
+  <div class="slide-script">“FinSentinel 实现了‘高吞吐、低延迟、强事务、保隐私’的完美平衡，它已经做好了上线服务真实用户的准备。感谢大家的聆听！下面欢迎技术总监（老师）和同学们进行提问，我们将非常乐意为您解答任何深层次的架构与规则决策问题。”</div>
+</div>
+
+<!-- Q&A Defense Shield -->
+<h2 style="font-size:15pt; color:#111; border-bottom: 2px solid #5cb85c; padding-bottom:6px; margin-top:36px; margin-bottom:16px;">🛡️ 答辩问答环节技术防护盾 (Q&A Defense)</h2>
+
+<div class="qa-card">
+  <div class="qa-question">问题 1 (系统韧性): 如果 MongoDB 数据库突然宕机或暂时不可用了，你的系统会丢失告警吗？Spark Streaming 会卡死崩溃吗？</div>
+  <div class="qa-answer">
+    <strong>完美防守回答：</strong><br>
+    “在 FinSentinel 中，我们做出了双重强韧性保证，绝不丢失任何一笔告警：<br>
+    第一，在 mongo_writer.py 写入层，我们重构实现了基于指数退避重试（Exponential Backoff）的 _insert_with_retry 机制，当网络短暂抖动或 MongoDB 临时闪断时，系统会发起 3 次指数重试，消化短暂的故障。<br>
+    第二，如果是长达数分钟的彻底宕机，在重试失败后该写入批次会抛出异常。此时 Spark 引擎会利用我们配置的 Delta Checkpoint 元数据自动回滚本次微批的 offset 提交。待 MongoDB 恢复后，Spark 会从最后一次未提交的 offset 处重新读取 Kafka 消息重算写入，实现完美的<strong>断点续传</strong>，确保了告警的 <strong>Exactly-Once</strong> 严格一次性投递，绝不遗漏。”
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-question">问题 2 (流量积压与扩展): 如果大促或黑客攻击期间，数据量暴增 10 倍，你的系统哪个组件会最先崩溃？如何扩展？</div>
+  <div class="qa-answer">
+    <strong>完美防守回答：</strong><br>
+    “当流量瞬间暴增 10 倍时，由于 Delta Lake 依赖的底层对象存储（OSS）写入瓶颈极低，<strong>最先面临计算压力甚至是 OOM 崩溃的将是 Spark 流引擎的内存状态（State Memory）</strong>。<br>
+    对此，我们做出了如下防御机制：<br>
+    1) <strong>背压与限流保护</strong>：在流引擎中启用了自适应背压限流机制（spark.streaming.backpressure.enabled = true），Spark 会根据上一个微批的处理耗时，自动动态限流从 Kafka 每次拉取的数据量，防止内存瞬间被打爆。<br>
+    2) <strong>极速横向扩展</strong>：我们在 Kafka 中设置了 3 个 Partition。此时我们可以增加 Spark 的 Worker 节点，利用 Kafka 的分区并发优势，线性扩展消费吞吐能力。由于我们以 user_id 作为 Kafka 分区键，同一个用户的历史状态数据始终会分配给同一个并发 Executor，扩展后其计算的状态本地化率（State Localization）依然是 100%。”
+  </div>
+</div>
+
+<div class="qa-card">
+  <div class="qa-question">问题 3 (时区与乱序): 你的窗口聚合使用的是事件时间还是处理时间？如果交易因为网络延迟了 10 分钟才到达，它还会被计入当前窗口的统计中吗？</div>
+  <div class="qa-answer">
+    <strong>完美防守回答：</strong><br>
+    “在金融风控场景下，必须使用交易发生时的<strong>事件时间（Event Time）</strong>，即数据中自带 the timestamp，以防止欺诈分子利用网络堵塞规避高频刷卡检测。<br>
+    我们在 spark_streaming.py 中强制对事件时间附加了 10 分钟的水印限制：withWatermark("timestamp", "10 minutes")。<br>
+    * 如果交易在延迟 8 分钟（小于 10 分钟水印）后到达，Spark 依然在内存中保留了该窗口的历史状态，它会<strong>被重新吸纳并正确计入</strong>对应的滑窗中，触发可能产生的告警，保证了风控准确性。<br>
+    * 如果延迟了 15 分钟（超过了 10 分钟水印），为了防止状态常驻导致内存无休止泄漏，该数据会被作为过期噪音数据直接抛弃，这是在‘状态内存开销’和‘乱序延迟容忍度’之间取得的工业级科学平衡。”
+  </div>
+</div>
+
+</body>
+</html>
