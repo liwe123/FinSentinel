@@ -4,6 +4,7 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
+    restart: unless-stopped
     ports:
       - "2181:2181"
     environment:
@@ -18,6 +19,7 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
+    restart: unless-stopped
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -40,6 +42,7 @@ services:
   mongodb:
     image: mongo:7.0
     container_name: mongodb
+    restart: unless-stopped
     ports:
       - "27017:27017"
     volumes:
@@ -55,6 +58,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: spark-master
+    restart: unless-stopped
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -71,11 +75,17 @@ services:
       - MONGO_URI=mongodb://mongodb:27017
       - DELTA_RAW_PATH=/app/data/raw
       - DELTA_CLEAN_PATH=/app/data/clean
+      - PYTHONPATH=/app
     depends_on:
       kafka:
         condition: service_healthy
       mongodb:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     command: >
       bash -c "
         /opt/spark/sbin/start-master.sh &&

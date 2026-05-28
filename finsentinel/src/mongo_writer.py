@@ -1,29 +1,18 @@
+import logging
+import sys
 import time
 from datetime import datetime
 
 from pymongo import MongoClient
 from pymongo.errors import AutoReconnect, ConnectionFailure
 
+logger = logging.getLogger("mongo_writer")
 
-_TRIGGER_RULES = {
-    "VELOCITY_FRAUD": {
-        "rule": "R1: 速度欺诈 — 5分钟内 >= 5笔交易",
-        "threshold": 5,
-    },
-    "GEO_JUMP": {
-        "rule": "R2: 地理跳跃 — 距离 > 1000km 且间隔 < 10分钟",
-        "max_distance_km": 1000,
-        "max_interval_minutes": 10,
-    },
-    "NIGHT_LARGE": {
-        "rule": "R3: 深夜大额 — 金额 > $5000 且在 00:00-05:00",
-        "min_amount": 5000,
-        "hours": "00:00-05:00",
-    },
-    "MERCHANT_VELOCITY": {
-        "rule": "R4: 商户高频 — 1分钟内 > 3笔交易",
-        "threshold": 3,
-    },
+_RULE_MAPPING = {
+    "VELOCITY_FRAUD": "R1",
+    "GEO_JUMP": "R2",
+    "NIGHT_LARGE": "R3",
+    "MERCHANT_VELOCITY": "R4",
 }
 
 
@@ -50,18 +39,36 @@ class MongoAlertWriter:
                 return collection.insert_one(doc)
             except (AutoReconnect, ConnectionFailure) as e:
                 if attempt == max_retries - 1:
-                    print(f"[ERROR] MongoDB write failed after {max_retries} retries: {e}")
+                    logger.error(f"MongoDB write failed after {max_retries} retries: {e}")
                     raise
                 wait = 2 ** attempt
-                print(f"[RETRY] MongoDB attempt {attempt + 1} failed, retrying in {wait}s...")
+                logger.warning(f"MongoDB attempt {attempt + 1} failed, retrying in {wait}s...")
                 time.sleep(wait)
 
     def _build_trigger_detail(self, row) -> dict:
         rule_type = row["rule_type"]
-        template = _TRIGGER_RULES.get(rule_type, {"rule": rule_type})
+        yaml_key = _RULE_MAPPING.get(rule_type)
 
-        detail = dict(template)
+        detail = {
+            "rule": rule_type,
+            "description": "",
+        }
 
+        if yaml_key:
+            try:
+                from src.fraud_rules import load_rules_config
+                rules_cfg = load_rules_config()
+                rule_cfg = rules_cfg.get(yaml_key, {})
+                detail["rule"] = f"{yaml_key}: {rule_cfg.get('name', rule_type)} — {rule_cfg.get('description', '')}"
+                detail["description"] = rule_cfg.get("description", "")
+
+                for k, v in rule_cfg.items():
+                    if k not in ("enabled", "type", "name", "description"):
+                        detail[k] = v
+            except Exception as e:
+                logger.warning(f"Failed to load dynamic rules config: {e}")
+
+        # Populate transaction-specific runtime values
         if rule_type == "VELOCITY_FRAUD":
             detail["txn_count"] = row.get("txn_count")
             detail["user_id"] = row.get("user_id")
@@ -85,7 +92,7 @@ class MongoAlertWriter:
 
         for row in alerts:
             alert_doc = {
-                "alert_id": f"ALERT-{row['rule_type']}-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                "alert_id": f"ALERT-{row['rule_type']}-{row['transaction_id']}",
                 "rule_type": row["rule_type"],
                 "transaction_id": row["transaction_id"],
                 "user_hash": row["user_hash"],
@@ -95,21 +102,9 @@ class MongoAlertWriter:
                 "alert_time": datetime.now().isoformat(),
             }
             self._insert_with_retry(collection, alert_doc)
-            print(f"[ALERT] {row['rule_type']}: {row['transaction_id']} - ${row['amount']}")
+            logger.warning(f"[ALERT] {row['rule_type']}: {row['transaction_id']} - ${row['amount']}")
 
     def close(self):
         if self._client:
             self._client.close()
             self._client = None
-
-
-def write_to_mongo(batch_df, batch_id, config: dict):
-    writer = MongoAlertWriter(
-        config["mongo"]["uri"],
-        config["mongo"]["database"],
-        config["mongo"]["collection"],
-    )
-    try:
-        writer.write_batch(batch_df, batch_id)
-    finally:
-        writer.close()

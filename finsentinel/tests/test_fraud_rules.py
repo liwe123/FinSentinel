@@ -261,3 +261,104 @@ def test_check_merchant_velocity_miss(spark):
     df = spark.createDataFrame(data)
     result = check_merchant_velocity(df, window_minutes=1, threshold=3)
     assert result.count() == 0
+
+
+def test_boundary_night_large(spark):
+    """测试深夜大额的边界值"""
+    from src.fraud_rules import check_night_large
+
+    # 恰好等于 min_amount (5000.0) 和 start_hour / end_hour
+    data = [
+        {
+            "transaction_id": "TXN-B1",
+            "user_id": "U1001",
+            "merchant_id": "M3001",
+            "amount": 5000.0,  # 恰好等于 5000.0 (不应命中，应当 > 5000)
+            "timestamp": datetime(2024, 1, 15, 3, 0, 0),
+            "latitude": 40.7128,
+            "longitude": -74.0060,
+            "ip_address": "192.168.1.1",
+            "device_id": "DEV-001",
+            "transaction_type": "purchase",
+        },
+        {
+            "transaction_id": "TXN-B2",
+            "user_id": "U1001",
+            "merchant_id": "M3001",
+            "amount": 5000.01,  # 恰好大于 5000.0 且在3点 (应命中)
+            "timestamp": datetime(2024, 1, 15, 3, 0, 0),
+            "latitude": 40.7128,
+            "longitude": -74.0060,
+            "ip_address": "192.168.1.1",
+            "device_id": "DEV-001",
+            "transaction_type": "purchase",
+        },
+        {
+            "transaction_id": "TXN-B3",
+            "user_id": "U1001",
+            "merchant_id": "M3001",
+            "amount": 6000.0,
+            "timestamp": datetime(2024, 1, 15, 0, 0, 0),  # 恰好等于 0点 (应命中, hour >= 0)
+            "latitude": 40.7128,
+            "longitude": -74.0060,
+            "ip_address": "192.168.1.1",
+            "device_id": "DEV-001",
+            "transaction_type": "purchase",
+        },
+        {
+            "transaction_id": "TXN-B4",
+            "user_id": "U1001",
+            "merchant_id": "M3001",
+            "amount": 6000.0,
+            "timestamp": datetime(2024, 1, 15, 5, 0, 0),  # 恰好等于 5点 (不应命中, hour < 5)
+            "latitude": 40.7128,
+            "longitude": -74.0060,
+            "ip_address": "192.168.1.1",
+            "device_id": "DEV-001",
+            "transaction_type": "purchase",
+        }
+    ]
+
+    df = spark.createDataFrame(data)
+    result = check_night_large(df, min_amount=5000, start_hour=0, end_hour=5)
+    
+    # 验证命中结果：TXN-B2 和 TXN-B3 应命中，其他两个不命中
+    assert result.count() == 2
+    hit_ids = [r["transaction_id"] for r in result.collect()]
+    assert "TXN-B2" in hit_ids
+    assert "TXN-B3" in hit_ids
+
+
+def test_geo_jump_single_transaction(spark):
+    """R2: 地理跳跃 - 仅有单笔交易时不应命中"""
+    from src.fraud_rules import check_geo_jump
+
+    data = [
+        {
+            "transaction_id": "TXN-G-SINGLE",
+            "user_id": "U1001",
+            "merchant_id": "M3001",
+            "amount": 200.0,
+            "timestamp": datetime(2024, 1, 15, 12, 0, 0),
+            "latitude": 40.7128,
+            "longitude": -74.0060,
+            "ip_address": "192.168.1.1",
+            "device_id": "DEV-001",
+            "transaction_type": "purchase",
+        }
+    ]
+
+    df = spark.createDataFrame(data)
+    result = check_geo_jump(df, max_distance_km=1000, max_interval_minutes=10)
+    assert result.count() == 0
+
+
+def test_load_rules_config():
+    """测试规则配置加载函数是否工作正常"""
+    from src.fraud_rules import load_rules_config
+    rules = load_rules_config()
+    assert isinstance(rules, dict)
+    for rule_id in ["R1", "R2", "R3", "R4"]:
+        assert rule_id in rules
+        assert "enabled" in rules[rule_id]
+        assert "description" in rules[rule_id]

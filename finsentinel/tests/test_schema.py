@@ -28,8 +28,8 @@ def test_raw_schema_fields(spark):
     """验证 Raw 表 Schema 字段完整性"""
     expected_fields = {
         "transaction_id", "user_id", "merchant_id", "amount",
-        "timestamp", "latitude", "longitude", "ip_address",
-        "device_id", "transaction_type", "kafka_partition",
+        "currency", "timestamp", "latitude", "longitude", "city",
+        "ip_address", "device_id", "transaction_type", "kafka_partition",
         "kafka_offset", "ingest_time"
     }
     actual_fields = {f.name for f in raw_schema.fields}
@@ -40,8 +40,8 @@ def test_clean_schema_fields(spark):
     """验证 Clean 表 Schema 字段完整性（脱敏后）"""
     expected_fields = {
         "transaction_id", "user_hash", "merchant_id", "amount",
-        "timestamp", "latitude", "longitude", "ip_mask",
-        "transaction_type", "kafka_partition", "kafka_offset",
+        "currency", "timestamp", "latitude", "longitude", "city",
+        "ip_mask", "transaction_type", "kafka_partition", "kafka_offset",
         "ingest_time"
     }
     actual_fields = {f.name for f in clean_schema.fields}

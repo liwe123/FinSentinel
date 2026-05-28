@@ -4,7 +4,11 @@ from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
-PII_SALT = "FinSentinel2024"
+import logging
+import sys
+from config.settings import get_config
+
+logger = logging.getLogger("fraud_rules")
 
 
 def load_rules_config():
@@ -88,9 +92,10 @@ def apply_all_rules(df: DataFrame) -> DataFrame:
     rules = load_rules_config()
     alerts = []
 
+    salt = get_config()["pii_salt"]
     df = df.withColumn(
         "user_hash",
-        F.sha2(F.concat(F.col("user_id"), F.lit(PII_SALT)), 256),
+        F.sha2(F.concat(F.col("user_id"), F.lit(salt)), 256),
     )
 
     if rules["R1"]["enabled"]:

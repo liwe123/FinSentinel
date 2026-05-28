@@ -148,8 +148,8 @@ def test_pii_user_hash(spark):
     from src.delta_writer import process_clean_table
 
     data = [{"transaction_id": "TXN-001", "user_id": "U1001", "merchant_id": "M3001",
-             "amount": 100.0, "timestamp": datetime(2024, 1, 15, 12, 0, 0),
-             "latitude": 40.7128, "longitude": -74.0060,
+             "amount": 100.0, "currency": "USD", "timestamp": datetime(2024, 1, 15, 12, 0, 0),
+             "latitude": 40.7128, "longitude": -74.0060, "city": "New York",
              "ip_address": "192.168.1.100", "device_id": "DEV-001",
              "transaction_type": "purchase", "kafka_partition": 0,
              "kafka_offset": 1, "ingest_time": datetime(2024, 1, 15, 12, 0, 0)}]
@@ -166,8 +166,8 @@ def test_pii_ip_mask(spark):
     from src.delta_writer import process_clean_table
 
     data = [{"transaction_id": "TXN-001", "user_id": "U1001", "merchant_id": "M3001",
-             "amount": 100.0, "timestamp": datetime(2024, 1, 15, 12, 0, 0),
-             "latitude": 40.7128, "longitude": -74.0060,
+             "amount": 100.0, "currency": "USD", "timestamp": datetime(2024, 1, 15, 12, 0, 0),
+             "latitude": 40.7128, "longitude": -74.0060, "city": "New York",
              "ip_address": "10.20.30.40", "device_id": "DEV-001",
              "transaction_type": "purchase", "kafka_partition": 0,
              "kafka_offset": 1, "ingest_time": datetime(2024, 1, 15, 12, 0, 0)}]
@@ -186,8 +186,8 @@ def test_pii_device_id_removed(spark):
     assert "device_id" not in fields
 
     data = [{"transaction_id": "TXN-001", "user_id": "U1001", "merchant_id": "M3001",
-             "amount": 100.0, "timestamp": datetime(2024, 1, 15, 12, 0, 0),
-             "latitude": 40.7128, "longitude": -74.0060,
+             "amount": 100.0, "currency": "USD", "timestamp": datetime(2024, 1, 15, 12, 0, 0),
+             "latitude": 40.7128, "longitude": -74.0060, "city": "New York",
              "ip_address": "192.168.1.1", "device_id": "DEV-SECRET",
              "transaction_type": "purchase", "kafka_partition": 0,
              "kafka_offset": 1, "ingest_time": datetime(2024, 1, 15, 12, 0, 0)}]
@@ -202,8 +202,8 @@ def test_raw_table_retains_original_data(spark):
     from src.delta_writer import process_raw_table
 
     data = [{"transaction_id": "TXN-001", "user_id": "U1001", "merchant_id": "M3001",
-             "amount": 100.0, "timestamp": datetime(2024, 1, 15, 12, 0, 0),
-             "latitude": 40.7128, "longitude": -74.0060,
+             "amount": 100.0, "currency": "USD", "timestamp": datetime(2024, 1, 15, 12, 0, 0),
+             "latitude": 40.7128, "longitude": -74.0060, "city": "New York",
              "ip_address": "192.168.1.100", "device_id": "DEV-001",
              "transaction_type": "purchase", "kafka_partition": 0,
              "kafka_offset": 1}]
@@ -214,6 +214,8 @@ def test_raw_table_retains_original_data(spark):
     assert row.user_id == "U1001"
     assert row.ip_address == "192.168.1.100"
     assert row.device_id == "DEV-001"
+    assert row.currency == "USD"
+    assert row.city == "New York"
     assert row.ingest_time is not None
 
 

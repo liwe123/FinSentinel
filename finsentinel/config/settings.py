@@ -4,9 +4,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def get_config():
+def get_config() -> dict:
     """从环境变量读取配置，无硬编码路径"""
     return {
+        "pii_salt": os.getenv("PII_SALT", "FinSentinel2024"),
         "kafka": {
             "bootstrap_servers": os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
             "topic": os.getenv("KAFKA_TOPIC", "txns"),

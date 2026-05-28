@@ -1,15 +1,24 @@
-import json
-import time
-import random
 import argparse
-from datetime import datetime, timezone
-from kafka import KafkaProducer
-from faker import Faker
-import sys
+import json
+import logging
 import os
+import random
+import sys
+import time
+from datetime import datetime, timezone
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from faker import Faker
+from kafka import KafkaProducer
+
 from config.settings import get_config
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
+logger = logging.getLogger("transaction_generator")
 
 fake = Faker()
 
@@ -91,14 +100,14 @@ def run_generator(inject_rule=None, continuous=True):
     producer = create_producer(kafka_config["bootstrap_servers"])
     topic = kafka_config["topic"]
 
-    print(f"Starting transaction generator -> Kafka topic: {topic}")
+    logger.info(f"Starting transaction generator -> Kafka topic: {topic}")
 
     try:
         if inject_rule:
             tx = inject_fraud_tx(inject_rule)
             producer.send(topic, key=tx["user_id"], value=tx)
             producer.flush()
-            print(f"[FRAUD INJECT] Rule {inject_rule}: {tx['transaction_id']}")
+            logger.info(f"[FRAUD INJECT] Rule {inject_rule}: {tx['transaction_id']}")
         else:
             count = 0
             batch_size = gen_config.get("batch_size", 1)
@@ -109,10 +118,10 @@ def run_generator(inject_rule=None, continuous=True):
                     producer.send(topic, key=tx["user_id"], value=tx)
                     count += 1
                 if count % 10 == 0:
-                    print(f"Generated {count} transactions")
+                    logger.info(f"Generated {count} transactions")
                 time.sleep(interval)
     except KeyboardInterrupt:
-        print("Generator stopped")
+        logger.info("Generator stopped")
     finally:
         producer.close()
 
